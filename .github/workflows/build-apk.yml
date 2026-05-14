@@ -30,10 +30,13 @@ jobs:
       - name: Generate Android platform files
         run: flutter create --platforms=android .
 
-      - name: Add location permissions to manifest
+      - name: Configure Android manifest and package
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           sed -i 's#<application#<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <application#' "$MANIFEST"
+          sed -i 's#android:label="true_local_time"#android:label="True Local Time"#' "$MANIFEST"
+          GRADLE=$(ls android/app/build.gradle.kts android/app/build.gradle 2>/dev/null | head -1)
+          sed -i -E 's#applicationId( =)? *"[^"]*"#applicationId\1 "loonyb.in.true_local_time"#' "$GRADLE"
 
       - name: Install dependencies
         run: flutter pub get

@@ -1,21 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Transparent background; globe scaled down to sit inside the
+  <!-- Transparent background; globe scaled to r=145 so it sits inside the
        adaptive-icon safe zone (background colour is supplied separately). -->
-  <g transform="translate(256 256) scale(0.72)">
+  <g transform="translate(256 256) scale(0.806)">
 
     <!-- Latitudes: dotted gray horizontal lines -->
-    <line x1="-180" y1="0" x2="180" y2="0" stroke="#7a7a7a" stroke-width="2.1" stroke-dasharray="2.8 5.6"/>
-    <line x1="-156" y1="-90" x2="156" y2="-90" stroke="#7a7a7a" stroke-width="2.1" stroke-dasharray="2.8 5.6"/>
-    <line x1="-156" y1="90" x2="156" y2="90" stroke="#7a7a7a" stroke-width="2.1" stroke-dasharray="2.8 5.6"/>
-    <line x1="-90" y1="-156" x2="90" y2="-156" stroke="#7a7a7a" stroke-width="2.1" stroke-dasharray="2.8 5.6"/>
-    <line x1="-90" y1="156" x2="90" y2="156" stroke="#7a7a7a" stroke-width="2.1" stroke-dasharray="2.8 5.6"/>
+    <line x1="-180" y1="0" x2="180" y2="0" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
+    <line x1="-156" y1="-90" x2="156" y2="-90" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
+    <line x1="-156" y1="90" x2="156" y2="90" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
+    <line x1="-90" y1="-156" x2="90" y2="-156" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
+    <line x1="-90" y1="156" x2="90" y2="156" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
 
     <!-- Longitudes: solid gray vertical ellipses -->
-    <line x1="0" y1="-180" x2="0" y2="180" stroke="#7a7a7a" stroke-width="2.1"/>
-    <ellipse cx="0" cy="0" rx="90" ry="180" fill="none" stroke="#7a7a7a" stroke-width="2.1"/>
-    <ellipse cx="0" cy="0" rx="156" ry="180" fill="none" stroke="#7a7a7a" stroke-width="2.1"/>
+    <line x1="0" y1="-180" x2="0" y2="180" stroke="#a4a4a4" stroke-width="8"/>
+    <ellipse cx="0" cy="0" rx="90" ry="180" fill="none" stroke="#a4a4a4" stroke-width="8"/>
+    <ellipse cx="0" cy="0" rx="156" ry="180" fill="none" stroke="#a4a4a4" stroke-width="8"/>
 
     <!-- Globe outline (on top) -->
-    <circle cx="0" cy="0" r="180" fill="none" stroke="#ffffff" stroke-width="4.2"/>
+    <circle cx="0" cy="0" r="180" fill="none" stroke="#ffffff" stroke-width="17"/>
   </g>
 </svg>
