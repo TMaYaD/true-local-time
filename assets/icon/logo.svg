@@ -2,22 +2,22 @@
   <!-- Black background -->
   <rect width="512" height="512" fill="#000000"/>
 
-  <!-- Globe centered at (256, 256), radius 180 -->
-  <g transform="translate(256 256)">
+  <!-- Globe centered at (256, 256); scaled to r=170 with bold strokes -->
+  <g transform="translate(256 256) scale(0.944)">
 
     <!-- Latitudes: dotted gray horizontal lines -->
-    <line x1="-180" y1="0" x2="180" y2="0" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="2 4"/>
-    <line x1="-156" y1="-90" x2="156" y2="-90" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="2 4"/>
-    <line x1="-156" y1="90" x2="156" y2="90" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="2 4"/>
-    <line x1="-90" y1="-156" x2="90" y2="-156" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="2 4"/>
-    <line x1="-90" y1="156" x2="90" y2="156" stroke="#7a7a7a" stroke-width="1.5" stroke-dasharray="2 4"/>
+    <line x1="-180" y1="0" x2="180" y2="0" stroke="#9a9a9a" stroke-width="7" stroke-dasharray="4 12"/>
+    <line x1="-156" y1="-90" x2="156" y2="-90" stroke="#9a9a9a" stroke-width="7" stroke-dasharray="4 12"/>
+    <line x1="-156" y1="90" x2="156" y2="90" stroke="#9a9a9a" stroke-width="7" stroke-dasharray="4 12"/>
+    <line x1="-90" y1="-156" x2="90" y2="-156" stroke="#9a9a9a" stroke-width="7" stroke-dasharray="4 12"/>
+    <line x1="-90" y1="156" x2="90" y2="156" stroke="#9a9a9a" stroke-width="7" stroke-dasharray="4 12"/>
 
     <!-- Longitudes: solid gray vertical ellipses -->
-    <line x1="0" y1="-180" x2="0" y2="180" stroke="#7a7a7a" stroke-width="1.5"/>
-    <ellipse cx="0" cy="0" rx="90" ry="180" fill="none" stroke="#7a7a7a" stroke-width="1.5"/>
-    <ellipse cx="0" cy="0" rx="156" ry="180" fill="none" stroke="#7a7a7a" stroke-width="1.5"/>
+    <line x1="0" y1="-180" x2="0" y2="180" stroke="#9a9a9a" stroke-width="7"/>
+    <ellipse cx="0" cy="0" rx="90" ry="180" fill="none" stroke="#9a9a9a" stroke-width="7"/>
+    <ellipse cx="0" cy="0" rx="156" ry="180" fill="none" stroke="#9a9a9a" stroke-width="7"/>
 
     <!-- Globe outline (on top) -->
-    <circle cx="0" cy="0" r="180" fill="none" stroke="#ffffff" stroke-width="3"/>
+    <circle cx="0" cy="0" r="180" fill="none" stroke="#ffffff" stroke-width="15"/>
   </g>
 </svg>

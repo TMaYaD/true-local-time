@@ -30,10 +30,25 @@ jobs:
       - name: Generate Android platform files
         run: flutter create --platforms=android .
 
-      - name: Add location permissions to manifest
+      - name: Configure Android manifest and package
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
           sed -i 's#<application#<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>\n    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>\n    <application#' "$MANIFEST"
+          sed -i 's#android:label="true_local_time"#android:label="True Local Time"#' "$MANIFEST"
+
+          # applicationId is the on-device id; namespace must be a valid Kotlin
+          # package, so it drops the dot ("loonyb.in" -> "loonybin").
+          GRADLE=$(ls android/app/build.gradle.kts android/app/build.gradle 2>/dev/null | head -1)
+          sed -i -E 's#applicationId( =)? *"[^"]*"#applicationId\1 "loonyb.in.true_local_time"#' "$GRADLE"
+          sed -i -E 's#namespace( =)? *"[^"]*"#namespace\1 "loonybin.true_local_time"#' "$GRADLE"
+
+          # Relocate MainActivity to match the new namespace.
+          ACT=$(find android/app/src/main -name 'MainActivity.*' | head -1)
+          LANG_ROOT=$(echo "$ACT" | sed -E 's#(android/app/src/main/(kotlin|java))/.*#\1#')
+          NEW_DIR="$LANG_ROOT/loonybin/true_local_time"
+          mkdir -p "$NEW_DIR"
+          sed -i -E 's#^package .*#package loonybin.true_local_time#' "$ACT"
+          mv "$ACT" "$NEW_DIR/$(basename "$ACT")"
 
       - name: Install dependencies
         run: flutter pub get
