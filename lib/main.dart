@@ -31,54 +31,63 @@ class LatLng {
 }
 
 class GlobeGeometry {
-  final List<List<LatLng>> countryRings;
+  // Well-defined international boundaries only; all disputed, line-of-control,
+  // indefinite and indeterminant segments are omitted.
+  final List<List<LatLng>> boundaryLines;
   final List<List<LatLng>> timezoneRings;
-  const GlobeGeometry(this.countryRings, this.timezoneRings);
+  const GlobeGeometry(this.boundaryLines, this.timezoneRings);
 }
 
 Future<GlobeGeometry> loadGlobeGeometry() async {
   Future<List<List<LatLng>>> load(String path) async {
-    final rings = <List<LatLng>>[];
-    _collectRings(jsonDecode(await rootBundle.loadString(path)), rings);
-    return rings;
+    final lines = <List<LatLng>>[];
+    _collectLines(jsonDecode(await rootBundle.loadString(path)), lines);
+    return lines;
   }
 
   return GlobeGeometry(
-    await load('assets/geo/countries_110m.geojson'),
+    await load('assets/geo/boundaries_undisputed.geojson'),
     await load('assets/geo/timezones_simplified.geojson'),
   );
 }
 
 // Walks any GeoJSON object (FeatureCollection / GeometryCollection / Feature /
-// Polygon / MultiPolygon) and appends every linear ring to [out].
-void _collectRings(dynamic geo, List<List<LatLng>> out) {
+// Polygon / MultiPolygon / LineString / MultiLineString) and appends every
+// ring or line as a flat list of points to [out].
+void _collectLines(dynamic geo, List<List<LatLng>> out) {
   if (geo is! Map) return;
   switch (geo['type']) {
     case 'FeatureCollection':
       for (final f in (geo['features'] as List)) {
-        _collectRings(f, out);
+        _collectLines(f, out);
       }
     case 'Feature':
-      _collectRings(geo['geometry'], out);
+      _collectLines(geo['geometry'], out);
     case 'GeometryCollection':
       for (final g in (geo['geometries'] as List)) {
-        _collectRings(g, out);
+        _collectLines(g, out);
+      }
+    case 'LineString':
+      out.add(_parseCoords(geo['coordinates'] as List));
+    case 'MultiLineString':
+      for (final line in (geo['coordinates'] as List)) {
+        out.add(_parseCoords(line as List));
       }
     case 'Polygon':
       for (final ring in (geo['coordinates'] as List)) {
-        out.add(_parseRing(ring as List));
+        out.add(_parseCoords(ring as List));
       }
     case 'MultiPolygon':
       for (final poly in (geo['coordinates'] as List)) {
         for (final ring in (poly as List)) {
-          out.add(_parseRing(ring as List));
+          out.add(_parseCoords(ring as List));
         }
       }
   }
 }
 
 // GeoJSON coordinate order is [longitude, latitude].
-List<LatLng> _parseRing(List coords) => [
+List<LatLng> _parseCoords(List coords) => [
       for (final c in coords)
         LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble()),
     ];
@@ -414,19 +423,21 @@ class GlobePainter extends CustomPainter {
 
     final geo = geometry;
     if (geo != null) {
+      // Faint political boundaries underneath.
+      canvas.drawPath(
+        _buildPath(geo.boundaryLines),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.6
+          ..color = Colors.white24,
+      );
+      // Prominent timezone outlines on top.
       canvas.drawPath(
         _buildPath(geo.timezoneRings),
         Paint()
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.7
-          ..color = const Color(0xFF3A6EA5),
-      );
-      canvas.drawPath(
-        _buildPath(geo.countryRings),
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.9
-          ..color = Colors.white70,
+          ..strokeWidth = 1.3
+          ..color = const Color(0xFF7FB3D5),
       );
     }
 
