@@ -7,6 +7,8 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.location.Location
 import android.location.LocationManager
+import android.os.Bundle
+import android.util.Log
 import android.widget.RemoteViews
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -17,15 +19,93 @@ class TrueLocalTimeWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        val longitude = lastKnownLongitude(context)
-        val tzId = solarTimeZoneId(longitude)
-        val views = RemoteViews(context.packageName, R.layout.true_local_time_widget).apply {
+        renderAsync {
+            appWidgetIds.forEach { render(context, appWidgetManager, it) }
+        }
+    }
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle,
+    ) {
+        renderAsync {
+            render(context, appWidgetManager, appWidgetId)
+        }
+    }
+
+    // BroadcastReceiver.onReceive callbacks have ~10s before they're killed,
+    // and AppWidgetProvider.onUpdate runs on the main thread. goAsync() keeps
+    // the receiver alive while we read GeoJSON and rasterise off-main.
+    private fun renderAsync(work: () -> Unit) {
+        val pending = goAsync()
+        Thread {
+            try {
+                work()
+            } catch (t: Throwable) {
+                Log.e(TAG, "widget update failed", t)
+            } finally {
+                pending.finish()
+            }
+        }.start()
+    }
+
+    private fun render(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+    ) {
+        val fix = lastKnownFix(context)
+        val tzId = solarTimeZoneId(fix?.longitude)
+
+        val opts = appWidgetManager.getAppWidgetOptions(appWidgetId)
+        val widthDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0)
+        val heightDp = opts.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, 0)
+        val landscape = widthDp > 0 && heightDp > 0 && widthDp > heightDp * 1.4
+
+        val layoutRes = if (landscape) R.layout.true_local_time_widget_wide
+        else R.layout.true_local_time_widget
+
+        val views = RemoteViews(context.packageName, layoutRes).apply {
             setString(R.id.tlt_widget_date, "setTimeZone", tzId)
             setString(R.id.tlt_widget_time, "setTimeZone", tzId)
-            setTextViewText(R.id.tlt_widget_longitude, longitudeLabel(longitude))
+            setTextViewText(R.id.tlt_widget_longitude, longitudeLabel(fix?.longitude))
+            attachGlobe(context, this, fix, landscape, widthDp, heightDp)
             launchAppOnTap(context, this)
         }
-        appWidgetIds.forEach { appWidgetManager.updateAppWidget(it, views) }
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+    }
+
+    private fun attachGlobe(
+        context: Context,
+        views: RemoteViews,
+        fix: Fix?,
+        landscape: Boolean,
+        widthDp: Int,
+        heightDp: Int,
+    ) {
+        val geometry = try {
+            GlobeGeometry.load(context)
+        } catch (t: Throwable) {
+            Log.w(TAG, "globe assets unavailable", t)
+            return
+        }
+        val density = context.resources.displayMetrics.density
+        // The globe slot is roughly the widget's short side (height for the
+        // landscape layout, width for the portrait layout). Cap the bitmap so
+        // the RemoteViews payload stays well under the 1.5 MB IPC limit.
+        val sideDp = if (landscape) heightDp else widthDp
+        val sidePx = ((if (sideDp > 0) sideDp else 140) * density)
+            .toInt().coerceIn(96, 360)
+        val bmp = renderGlobe(
+            geometry = geometry,
+            centerLon = fix?.longitude ?: 0.0,
+            userLat = fix?.latitude,
+            userLon = fix?.longitude,
+            sizePx = sidePx,
+        )
+        views.setImageViewBitmap(R.id.tlt_widget_globe, bmp)
     }
 
     private fun launchAppOnTap(context: Context, views: RemoteViews) {
@@ -41,7 +121,7 @@ class TrueLocalTimeWidget : AppWidgetProvider() {
     }
 
     @SuppressLint("MissingPermission")
-    private fun lastKnownLongitude(context: Context): Double? {
+    private fun lastKnownFix(context: Context): Fix? {
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
             ?: return null
         var best: Location? = null
@@ -59,9 +139,15 @@ class TrueLocalTimeWidget : AppWidgetProvider() {
                 best = candidate
             }
         }
-        return best?.longitude
+        return best?.let { Fix(it.latitude, it.longitude) }
+    }
+
+    companion object {
+        private const val TAG = "TrueLocalTimeWidget"
     }
 }
+
+private data class Fix(val latitude: Double, val longitude: Double)
 
 // Solar time = UTC + 4 minutes per degree east. Java treats "GMT±HH:MM" as a
 // fixed-offset zone, which is exactly what TextClock needs in order to render

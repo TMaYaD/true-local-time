@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/true_local_time_widget_background"
-    android:gravity="center"
+    android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="12dp">
 
@@ -22,13 +22,20 @@
         android:id="@+id/tlt_widget_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
         android:fontFeatureSettings="tnum"
         android:format12Hour="HH:mm"
         android:format24Hour="HH:mm"
         android:textColor="#FFFFFF"
         android:textSize="34sp"
         android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/tlt_widget_globe"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="4dp"
+        android:layout_weight="1"
+        android:contentDescription="@null" />
 
     <TextView
         android:id="@+id/tlt_widget_longitude"
