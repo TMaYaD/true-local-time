@@ -31,10 +31,9 @@ class LatLng {
 }
 
 class GlobeGeometry {
-  // Faint political boundaries (India's official point of view; only
-  // well-defined international boundaries, no disputed lines).
+  // Well-defined international boundaries only; all disputed, line-of-control,
+  // indefinite and indeterminant segments are omitted.
   final List<List<LatLng>> boundaryLines;
-  // Prominent timezone outlines.
   final List<List<LatLng>> timezoneRings;
   const GlobeGeometry(this.boundaryLines, this.timezoneRings);
 }
@@ -47,7 +46,7 @@ Future<GlobeGeometry> loadGlobeGeometry() async {
   }
 
   return GlobeGeometry(
-    await load('assets/geo/boundaries_india_pov.geojson'),
+    await load('assets/geo/boundaries_undisputed.geojson'),
     await load('assets/geo/timezones_simplified.geojson'),
   );
 }
