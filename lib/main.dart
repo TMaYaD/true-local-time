@@ -441,6 +441,17 @@ class GlobePainter extends CustomPainter {
       );
     }
 
+    // Very quiet meridian for the longitude currently facing the viewer.
+    // In an orthographic projection this is exactly the vertical diameter.
+    canvas.drawLine(
+      Offset(_cx, _cy - _r),
+      Offset(_cx, _cy + _r),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0
+        ..color = Colors.white12,
+    );
+
     final pos = position;
     if (pos != null) {
       // Blue meridian at the device longitude, painted on the globe so it
