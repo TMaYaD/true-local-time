@@ -4,18 +4,26 @@
   <g transform="translate(256 256) scale(0.806)">
 
     <!-- Latitudes: dotted gray horizontal lines -->
-    <line x1="-180" y1="0" x2="180" y2="0" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
-    <line x1="-156" y1="-90" x2="156" y2="-90" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
-    <line x1="-156" y1="90" x2="156" y2="90" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
-    <line x1="-90" y1="-156" x2="90" y2="-156" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
-    <line x1="-90" y1="156" x2="90" y2="156" stroke="#a4a4a4" stroke-width="8" stroke-dasharray="5 13"/>
+    <line x1="-180" y1="0" x2="180" y2="0" stroke="#a4a4a4" stroke-width="15" stroke-dasharray="7 19"/>
+    <line x1="-156" y1="-90" x2="156" y2="-90" stroke="#a4a4a4" stroke-width="15" stroke-dasharray="7 19"/>
+    <line x1="-156" y1="90" x2="156" y2="90" stroke="#a4a4a4" stroke-width="15" stroke-dasharray="7 19"/>
+    <line x1="-90" y1="-156" x2="90" y2="-156" stroke="#a4a4a4" stroke-width="15" stroke-dasharray="7 19"/>
+    <line x1="-90" y1="156" x2="90" y2="156" stroke="#a4a4a4" stroke-width="15" stroke-dasharray="7 19"/>
 
     <!-- Longitudes: solid gray vertical ellipses -->
-    <line x1="0" y1="-180" x2="0" y2="180" stroke="#a4a4a4" stroke-width="8"/>
-    <ellipse cx="0" cy="0" rx="90" ry="180" fill="none" stroke="#a4a4a4" stroke-width="8"/>
-    <ellipse cx="0" cy="0" rx="156" ry="180" fill="none" stroke="#a4a4a4" stroke-width="8"/>
+    <line x1="0" y1="-180" x2="0" y2="180" stroke="#a4a4a4" stroke-width="15"/>
+    <ellipse cx="0" cy="0" rx="90" ry="180" fill="none" stroke="#a4a4a4" stroke-width="15"/>
+    <ellipse cx="0" cy="0" rx="156" ry="180" fill="none" stroke="#a4a4a4" stroke-width="15"/>
 
-    <!-- Globe outline (on top) -->
+    <!-- Globe outline -->
     <circle cx="0" cy="0" r="180" fill="none" stroke="#ffffff" stroke-width="17"/>
+
+    <!-- Location indicator: translucent blue halo + solid blue dot (behind hands) -->
+    <circle cx="0" cy="0" r="50" fill="#4285F4" opacity="0.32"/>
+    <circle cx="0" cy="0" r="22" fill="#4285F4" stroke="#ffffff" stroke-width="4"/>
+
+    <!-- Clock hands at 10:10 (white, on top) -->
+    <line x1="0" y1="0" x2="-82.3" y2="-47.5" stroke="#ffffff" stroke-width="20" stroke-linecap="round"/>
+    <line x1="0" y1="0" x2="116.9" y2="-67.5" stroke="#ffffff" stroke-width="20" stroke-linecap="round"/>
   </g>
 </svg>
