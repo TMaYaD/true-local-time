@@ -50,6 +50,48 @@ jobs:
           sed -i -E 's#^package .*#package loonybin.true_local_time#' "$ACT"
           mv "$ACT" "$NEW_DIR/$(basename "$ACT")"
 
+      - name: Inject release signing config
+        # Adds a release signingConfig sourced from env vars and points release
+        # builds at it when ANDROID_KEYSTORE_PATH is set (falls back to debug
+        # signing otherwise, which keeps the build working before the keystore
+        # secret is configured). Stable signing is what lets users upgrade an
+        # installed APK in place instead of hitting "package conflicts with an
+        # existing package".
+        run: |
+          GRADLE=android/app/build.gradle.kts
+          awk '
+          /^    buildTypes \{/ && !done {
+            print "    signingConfigs {"
+            print "        create(\"release\") {"
+            print "            val keystorePath = System.getenv(\"ANDROID_KEYSTORE_PATH\")"
+            print "            if (keystorePath != null) {"
+            print "                storeFile = file(keystorePath)"
+            print "                storePassword = System.getenv(\"ANDROID_KEYSTORE_PASSWORD\")"
+            print "                keyAlias = System.getenv(\"ANDROID_KEY_ALIAS\")"
+            print "                keyPassword = System.getenv(\"ANDROID_KEY_PASSWORD\")"
+            print "            }"
+            print "        }"
+            print "    }"
+            print ""
+            done = 1
+          }
+          { print }
+          ' "$GRADLE" > "$GRADLE.tmp" && mv "$GRADLE.tmp" "$GRADLE"
+
+          sed -i 's#signingConfig = signingConfigs.getByName("debug")#signingConfig = if (System.getenv("ANDROID_KEYSTORE_PATH") != null) signingConfigs.getByName("release") else signingConfigs.getByName("debug")#' "$GRADLE"
+
+      - name: Decode release keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.keystore" >> "$GITHUB_ENV"
+            echo "Release keystore staged at $RUNNER_TEMP/release.keystore"
+          else
+            echo "ANDROID_KEYSTORE_BASE64 not set; release APK will be signed with the ephemeral debug key (installs will conflict across runs)."
+          fi
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -57,7 +99,14 @@ jobs:
         run: dart run flutter_launcher_icons
 
       - name: Build release APK
-        run: flutter build apk --release
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          flutter build apk --release \
+            --build-number=${{ github.run_number }} \
+            --build-name=1.0.${{ github.run_number }}
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
