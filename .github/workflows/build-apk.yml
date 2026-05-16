@@ -42,13 +42,13 @@ jobs:
           sed -i -E 's#applicationId( =)? *"[^"]*"#applicationId\1 "loonyb.in.true_local_time"#' "$GRADLE"
           sed -i -E 's#namespace( =)? *"[^"]*"#namespace\1 "loonybin.true_local_time"#' "$GRADLE"
 
-          # Relocate MainActivity to match the new namespace.
+          # Replace the generated MainActivity with our channel-handling one.
           ACT=$(find android/app/src/main -name 'MainActivity.*' | head -1)
           LANG_ROOT=$(echo "$ACT" | sed -E 's#(android/app/src/main/(kotlin|java))/.*#\1#')
           NEW_DIR="$LANG_ROOT/loonybin/true_local_time"
           mkdir -p "$NEW_DIR"
-          sed -i -E 's#^package .*#package loonybin.true_local_time#' "$ACT"
-          mv "$ACT" "$NEW_DIR/$(basename "$ACT")"
+          rm -f "$ACT"
+          cp android_widget/MainActivity.kt "$NEW_DIR/MainActivity.kt"
 
       - name: Install home-screen widget
         # Drops the widget's Kotlin / res files into the freshly generated

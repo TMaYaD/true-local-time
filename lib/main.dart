@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/services.dart' show MethodChannel, rootBundle;
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
@@ -132,6 +132,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const _widgetChannel =
+      MethodChannel('loonybin.true_local_time/widget');
+
   Position? _position;
   String? _error;
   Timer? _ticker;
@@ -142,6 +145,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _geoLoadFailed = false;
   // Longitude currently facing the viewer at the centre of the globe.
   double? _centerLon;
+  // Last longitude pushed to the home-screen widget; we only re-push when the
+  // device has moved enough for the widget's minute-precision clock to care.
+  double? _lastWidgetLon;
 
   @override
   void initState() {
@@ -191,11 +197,13 @@ class _HomeScreenState extends State<HomeScreen> {
         _error = null;
         _centerLon ??= pos.longitude;
       });
+      _pushFixToWidget(pos);
       _positionSub = Geolocator.getPositionStream().listen((pos) {
         setState(() {
           _position = pos;
           _centerLon ??= pos.longitude;
         });
+        _pushFixToWidget(pos);
       });
     } catch (e) {
       setState(() {
@@ -206,6 +214,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   double get _effectiveCenterLon => _centerLon ?? _position?.longitude ?? 0;
+
+  // The widget's clock has minute precision (TextClock + GMT±HH:MM zone), so a
+  // longitude shift below ~0.1° doesn't change anything it can display.
+  // Geolocator on Android uses FusedLocationProvider by default, which keeps a
+  // private cache that LocationManager.getLastKnownLocation can't see — so the
+  // widget has no other way to learn where we are.
+  void _pushFixToWidget(Position pos) {
+    final last = _lastWidgetLon;
+    if (last != null && (last - pos.longitude).abs() < 0.1) return;
+    _lastWidgetLon = pos.longitude;
+    _widgetChannel.invokeMethod<void>('saveFix', {
+      'latitude': pos.latitude,
+      'longitude': pos.longitude,
+    }).catchError((_) {
+      // Channel may not be wired up (other platforms, tests); non-critical.
+    });
+  }
 
   // True local time = UTC shifted by 4 minutes per degree of the longitude
   // currently at the centre of the globe (east is ahead, west is behind).
