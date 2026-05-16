@@ -50,6 +50,26 @@ jobs:
           sed -i -E 's#^package .*#package loonybin.true_local_time#' "$ACT"
           mv "$ACT" "$NEW_DIR/$(basename "$ACT")"
 
+      - name: Install home-screen widget
+        # Drops the widget's Kotlin / res files into the freshly generated
+        # Android project and registers the receiver inside <application>.
+        run: |
+          KOTLIN_ROOT=android/app/src/main/kotlin
+          RES_ROOT=android/app/src/main/res
+          mkdir -p "$KOTLIN_ROOT" "$RES_ROOT"
+          cp -r android_widget/kotlin/. "$KOTLIN_ROOT/"
+          cp -r android_widget/res/. "$RES_ROOT/"
+
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          awk '
+          /<\/application>/ && !done {
+            while ((getline line < "android_widget/manifest_receiver.xml") > 0) print line
+            close("android_widget/manifest_receiver.xml")
+            done = 1
+          }
+          { print }
+          ' "$MANIFEST" > "$MANIFEST.tmp" && mv "$MANIFEST.tmp" "$MANIFEST"
+
       - name: Inject release signing config
         # Adds a release signingConfig sourced from env vars and points release
         # builds at it when ANDROID_KEYSTORE_PATH is set (falls back to debug
