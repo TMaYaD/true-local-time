@@ -122,6 +122,11 @@ class TrueLocalTimeWidget : AppWidgetProvider() {
 
     @SuppressLint("MissingPermission")
     private fun lastKnownFix(context: Context): Fix? {
+        // The app pushes fresh fixes here via a method channel. Prefer that
+        // over LocationManager since Geolocator/FusedLocationProvider keeps a
+        // private cache the widget can't otherwise reach.
+        WidgetBridge.loadFix(context)?.let { (lat, lon) -> return Fix(lat, lon) }
+
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager
             ?: return null
         var best: Location? = null
@@ -160,6 +165,6 @@ private fun solarTimeZoneId(longitude: Double?): String {
 }
 
 private fun longitudeLabel(longitude: Double?): String {
-    if (longitude == null) return "Longitude unknown"
+    if (longitude == null) return "Tap to open app"
     return "%.2f° %s".format(abs(longitude), if (longitude >= 0) "E" else "W")
 }
